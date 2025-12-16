@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model categories {
+  category_id    Int      @id @default(autoincrement())
+  category_name  String   @db.VarChar(100)
+  category_field String   @db.VarChar(100)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime
+  events         events[]
+}
+
+model coupons {
+  coupon_id       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime
+  code            String
+  discount_amount Decimal        @db.Decimal
+  expires_at      DateTime       @db.Timestamp(6)
+  event_id        String         @db.Uuid
+  discount_name   String
+  quota           BigInt
+  events          events         @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  transactions    transactions[]
+}
+
+model events {
+  event_id     String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String
+  description  String
+  date         DateTime       @db.Timestamp(6)
+  location     String
+  image        String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  organizer_id Int
+  category_id  Int
+  coupons      coupons[]
+  categories   categories     @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction)
+  organizers   organizers     @relation(fields: [organizer_id], references: [organizer_id], onDelete: NoAction, onUpdate: NoAction)
+  reviews      reviews[]
+  tickets      tickets[]
+  transactions transactions[]
+}
+
+model organizers {
+  organizer_id      Int      @id @default(autoincrement())
+  user_id           String   @unique @db.Uuid
+  organization_name String   @db.VarChar(150)
+  description       String
+  average_rating    Decimal? @default(0.0) @db.Decimal(3, 2)
+  total_reviews     Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime
+  events            events[]
+  profiles          profiles @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_organizer_user")
+}
+
+model payments {
+  payment_id     BigInt       @id @default(autoincrement())
+  payment_time   DateTime     @db.Timestamp(6)
+  image_url      String       @db.VarChar(255)
+  transaction_id String       @db.Uuid
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  transactions   transactions @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model points {
+  point_id                                         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  amount                                           Decimal        @db.Decimal
+  source                                           String
+  expires_at                                       DateTime       @db.Timestamp(6)
+  user_id                                          String         @db.Uuid
+  transaction_id                                   String         @db.Uuid
+  createdAt                                        DateTime       @default(now())
+  updatedAt                                        DateTime
+  transactions_points_transaction_idTotransactions transactions   @relation("points_transaction_idTotransactions", fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction)
+  profiles                                         profiles       @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  transactions_transactions_point_idTopoints       transactions[] @relation("transactions_point_idTopoints")
+}
+
+model profiles {
+  user_id                                        String         @id @default(dbgenerated("auth.uid()")) @db.Uuid
+  full_name                                      String         @default("")
+  referral_code                                  String?        @unique @default("")
+  profile_image                                  String?        @default("")
+  referrer_by                                    String?        @db.Uuid
+  role_id                                        Int
+  email                                          String
+  phone_number                                   Decimal        @db.Decimal
+  password                                       String
+  points_balance                                 Decimal?       @db.Decimal
+  createdAt                                      DateTime       @default(now())
+  updatedAt                                      DateTime       @default(now()) @updatedAt
+  organizers                                     organizers?
+  points                                         points[]
+  profiles                                       profiles?      @relation("profilesToprofiles", fields: [referrer_by], references: [user_id])
+  other_profiles                                 profiles[]     @relation("profilesToprofiles")
+  roles                                          roles          @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+  referrals_referrals_referred_user_idToprofiles referrals[]    @relation("referrals_referred_user_idToprofiles")
+  referrals_referrals_referrer_idToprofiles      referrals[]    @relation("referrals_referrer_idToprofiles")
+  reviews                                        reviews[]
+  transactions                                   transactions[]
+}
+
+model referrals {
+  id                                            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referrer_id                                   String   @db.Uuid
+  referred_user_id                              String   @db.Uuid
+  createdAt                                     DateTime @default(now())
+  updatedAt                                     DateTime
+  profiles_referrals_referred_user_idToprofiles profiles @relation("referrals_referred_user_idToprofiles", fields: [referred_user_id], references: [user_id], onDelete: Cascade)
+  profiles_referrals_referrer_idToprofiles      profiles @relation("referrals_referrer_idToprofiles", fields: [referrer_id], references: [user_id], onDelete: Cascade)
+}
+
+model reviews {
+  review_id      BigInt       @id @default(autoincrement())
+  rating         Int          @db.SmallInt
+  comment        String
+  user_id        String       @db.Uuid
+  event_id       String       @db.Uuid
+  transaction_id String       @db.Uuid
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  events         events       @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  transactions   transactions @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction)
+  profiles       profiles     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model roles {
+  role_id   Int        @id @default(autoincrement())
+  role_name String     @db.VarChar(50)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  profiles  profiles[]
+}
+
+model tickets {
+  ticket_id    String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id     String         @db.Uuid
+  name         String
+  price        Decimal        @db.Decimal
+  stock        Int            @db.SmallInt
+  description  String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  events       events         @relation(fields: [event_id], references: [event_id], onDelete: Cascade, onUpdate: Restrict)
+  transactions transactions[]
+}
+
+model transactions {
+  transaction_id                             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticket_id                                  String     @db.Uuid
+  qty                                        Int        @default(1) @db.SmallInt
+  total_price                                Decimal    @db.Decimal
+  status                                     String     @default("'pending'")
+  user_id                                    String     @db.Uuid
+  event_id                                   String     @db.Uuid
+  point_id                                   String?    @db.Uuid
+  coupon_id                                  String?    @db.Uuid
+  payment_deadline                           DateTime   @db.Timestamp(6)
+  confirmation_deadline                      DateTime   @db.Timestamp(6)
+  base_price_at_time_buy                     Decimal    @db.Decimal(12, 2)
+  createdAt                                  DateTime   @default(now())
+  updatedAt                                  DateTime
+  payments                                   payments[]
+  points_points_transaction_idTotransactions points[]   @relation("points_transaction_idTotransactions")
+  reviews                                    reviews[]
+  coupons                                    coupons?   @relation(fields: [coupon_id], references: [coupon_id], onDelete: NoAction, onUpdate: NoAction)
+  events                                     events     @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  points_transactions_point_idTopoints       points?    @relation("transactions_point_idTopoints", fields: [point_id], references: [point_id], onDelete: NoAction, onUpdate: NoAction)
+  tickets                                    tickets    @relation(fields: [ticket_id], references: [ticket_id], onDelete: Cascade, onUpdate: Restrict)
+  profiles                                   profiles   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
