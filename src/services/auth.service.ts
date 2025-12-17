@@ -66,4 +66,6 @@ export const loginService = async (
 const payload = { id: user.role_id, role:user.role_id};
 const accessToken=sign(payload,"rahasia", {expiresIn: "2h"});
   // 6. return data usernya beserta tokennya
+  const {password, ...userWithouutPassword}=user;
+  return {...userWithouutPassword,accessToken};
 }; 
