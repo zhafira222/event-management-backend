@@ -1,26 +1,35 @@
+import "dotenv/config";
 import express from "express";
-import { errorMiddleware } from "./middlewares/error.middleware";
+import cors from "cors";
+import authRouter from "./modules/auth/auth.router";
 import userRouter from "./routes/user.router";
-import authRouter from "./routes/auth.router";
+import profileRouter from "./routes/profile.router";
+
+import { errorMiddleware } from "./middlewares/error.middleware";
 
 const app = express();
-const PORT = 8000;
 
-// middleware
+
+// MIDDLEWARE GLOBAL
+
+app.use(cors());
 app.use(express.json());
 
-// health check
-app.get("/api", (req, res) => {
-  res.send("Welcome to My API");
-});
+// ROUTES
+app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
+app.use("/api/profile", profileRouter);
 
-// routes
-app.use("/users", userRouter); //ini buka profiles
-app.use("/auth", authRouter);
 
-// global error handler (HARUS PALING BAWAH)
+// ERROR HANDLER (PALING BAWAH)
 app.use(errorMiddleware);
 
+// RUN SERVER
+const PORT = process.env.PORT || 8000;
+
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
+
+// REGISTER STATIC FOLDER
+app.use("/uploads", express.static("uploads"));

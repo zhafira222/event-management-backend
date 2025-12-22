@@ -2,11 +2,11 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding database...");
+  console.log("Seeding database...");
 
-  // ======================
+ 
   // ROLES
-  // ======================
+
   const adminRole = await prisma.roles.create({
     data: { role_name: "admin", updated_at: new Date() },
   });
@@ -15,9 +15,9 @@ async function main() {
     data: { role_name: "user", updated_at: new Date() },
   });
 
-  // ======================
+
   // USERS
-  // ======================
+
   const admin = await prisma.user.create({
     data: {
       full_name: "Admin User",
@@ -41,9 +41,9 @@ async function main() {
     },
   });
 
-  // ======================
+ 
   // CATEGORIES
-  // ======================
+
   const musicCategory = await prisma.categories.create({
     data: {
       category_name: "Music",
@@ -52,9 +52,9 @@ async function main() {
     },
   });
 
-  // ======================
+
   // ORGANIZER
-  // ======================
+ 
   const organizer = await prisma.organizers.create({
     data: {
       user_id: admin.id,
@@ -64,9 +64,9 @@ async function main() {
     },
   });
 
-  // ======================
+
   // EVENT
-  // ======================
+
   const event = await prisma.events.create({
     data: {
       title: "Konser Indie 2025",
@@ -80,9 +80,9 @@ async function main() {
     },
   });
 
-  // ======================
+
   // TICKET
-  // ======================
+
   const ticket = await prisma.tickets.create({
     data: {
       event_id: event.event_id,
@@ -94,9 +94,9 @@ async function main() {
     },
   });
 
-  // ======================
+ 
   // COUPON
-  // ======================
+
   const coupon = await prisma.coupons.create({
     data: {
       code: "DISCOUNT10",
@@ -109,9 +109,9 @@ async function main() {
     },
   });
 
-  // ======================
+
   // TRANSACTION
-  // ======================
+
   const transaction = await prisma.transactions.create({
     data: {
       ticket_id: ticket.ticket_id,
@@ -128,9 +128,9 @@ async function main() {
     },
   });
 
-  // ======================
+
   // PAYMENT
-  // ======================
+ 
   await prisma.payments.create({
     data: {
       payment_time: new Date(),
@@ -140,9 +140,9 @@ async function main() {
     },
   });
 
-  // ======================
+
   // POINTS
-  // ======================
+
   await prisma.points.create({
     data: {
       amount: 50,
@@ -154,9 +154,9 @@ async function main() {
     },
   });
 
-  // ======================
+
   // REVIEW
-  // ======================
+
   await prisma.reviews.create({
     data: {
       rating: 5,
@@ -168,7 +168,7 @@ async function main() {
     },
   });
 
-  console.log("✅ Seeding selesai!");
+  console.log("Seeding selesai!");
 }
 
 main()
