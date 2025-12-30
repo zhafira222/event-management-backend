@@ -4,8 +4,8 @@ import {
   GetUsersQuery,
   getUsersService,
   updateUserService,
-} from "../services/user.service";
-import { ApiError } from "../utils/api-error";
+} from "./user.service";
+import { ApiError } from "../../utils/api-error";
 
 /*
  * GET USERS CONTROLLER

@@ -1,7 +1,7 @@
-import { prisma } from "../config/prisma";
-import cloudinary from "../config/cloudinary";
-import { ApiError } from "../utils/api-error";
-import { comparePassword, hashPassword } from "../utils/password";
+import { prisma } from "../../config/prisma";
+import cloudinary from "../../config/cloudinary";
+import { ApiError } from "../../utils/api-error";
+import { comparePassword, hashPassword } from "../../utils/password";
 
 export const updateProfileService = async (
   userId: number,

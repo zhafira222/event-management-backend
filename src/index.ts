@@ -2,8 +2,11 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import authRouter from "./modules/auth/auth.router";
-import userRouter from "./routes/user.router";
-import profileRouter from "./routes/profile.router";
+import userRouter from "./modules/user/user.router";
+import profileRouter from "./modules/profile/profile.router";
+import organizerRouter from "./modules/organizer/organizer.router";
+import ticketsRouter from "./modules/tickets/tickets.router";
+import transactionsRouter from "./modules/transactions/transactions.router";
 
 import { errorMiddleware } from "./middlewares/error.middleware";
 
@@ -19,6 +22,10 @@ app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/profile", profileRouter);
+app.use("/api/organizer", organizerRouter);
+app.use("/api/tickets", ticketsRouter);
+app.use("/api/transactions", transactionsRouter);
+
 
 
 // ERROR HANDLER (PALING BAWAH)
