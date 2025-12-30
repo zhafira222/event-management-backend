@@ -14,7 +14,7 @@ model categories {
   category_field String   @db.VarChar(100)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
-  events         events[]
+  events         event[]
 }
 
 model roles {
@@ -65,14 +65,15 @@ model organizers {
   updated_at        DateTime @updatedAt
 
   user              user     @relation(fields: [user_id], references: [id])
-  events            events[]
+  events            event[]
 }
 
-model events {
+model event {
   event_id      String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title         String
   description   String
-  date          DateTime   @db.Timestamp(6)
+  start_date    DateTime   @db.Timestamp(6)
+  end_date      DateTime   @db.Timestamp(6)
   location      String
   image         String
   organizer_id  Int
@@ -99,7 +100,7 @@ model coupons {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
-  events          events     @relation(fields: [event_id], references: [event_id])
+  events          event     @relation(fields: [event_id], references: [event_id])
   transactions    transactions[]
 }
 
@@ -113,7 +114,7 @@ model tickets {
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
 
-  events        events     @relation(fields: [event_id], references: [event_id])
+  events        event     @relation(fields: [event_id], references: [event_id])
   transactions  transactions[]
 }
 
@@ -134,7 +135,7 @@ model transactions {
 
   user          user         @relation(fields: [user_id], references: [id])
   tickets       tickets      @relation(fields: [ticket_id], references: [ticket_id])
-  events        events       @relation(fields: [event_id], references: [event_id])
+  events        event       @relation(fields: [event_id], references: [event_id])
   coupons       coupons?     @relation(fields: [coupon_id], references: [coupon_id])
   payments      payments[]
   reviews       reviews[]
@@ -177,6 +178,6 @@ model reviews {
   updated_at      DateTime   @updatedAt
 
   user            user         @relation(fields: [user_id], references: [id])
-  events          events       @relation(fields: [event_id], references: [event_id])
+  events          event       @relation(fields: [event_id], references: [event_id])
   transactions    transactions @relation(fields: [transaction_id], references: [transaction_id])
 }
