@@ -1,8 +1,8 @@
 import { CloudinaryService } from "../cloudinary/cloudinary.service";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateEventDTO } from "./dto/create-event.dto";
+import { CreateAcaraDTO } from "./dto/create-acara.dto";
 
-export class EventService {
+export class AcaraService {
   prisma: PrismaService;
   cloudinaryService: CloudinaryService;
 
@@ -11,24 +11,24 @@ export class EventService {
     this.cloudinaryService = new CloudinaryService();
   }
 
-  getEvents = async () => {
-    const events = await this.prisma.event.findMany();
-    return events;
+  getAcaras = async () => {
+    const acaras = await this.prisma.acara.findMany();
+    return acaras;
   };
 
-  createEvent = async (
-    body: CreateEventDTO, 
+  createAcara = async (
+    body: CreateAcaraDTO, 
     image: Express.Multer.File
   ) => {
     // 1. upload ke cloudinary
     const { secure_url } = await this.cloudinaryService.upload(image);
 
     // 2. insert ke database
-    await this.prisma.event.create({
+    await this.prisma.acara.create({
       data: { ...body, image: secure_url },
     });
 
     // 3. return message success
-    return {message: "event creation success!"};
+    return {message: "Acara berhasil dibuat!"};
   };
 }

@@ -1,30 +1,30 @@
 import { Router } from "express";
-import { EventController } from "./event.controller";
+import { AcaraController } from "./acara.controller";
 import { UploaderMiddleware } from "../../middlewares/upload.middleware";
 import { validateBody } from "../../middlewares/validation.middleware";
-import { CreateEventDTO } from "./dto/create-event.dto";
+import { CreateAcaraDTO } from "./dto/create-acara.dto";
 
-export class EventRouter {
+export class AcaraRouter {
   router: Router;
-  eventController: EventController;
+  acaraController: AcaraController;
   uploaderMiddleware: UploaderMiddleware;
 
   constructor() {
     this.router = Router();
-    this.eventController = new EventController();
+    this.acaraController = new AcaraController();
     this.uploaderMiddleware = new UploaderMiddleware();
     this.initRoutes();
   }
 
   private initRoutes = () => {
-    this.router.get("/", this.eventController.getEvents),
-      validateBody(CreateEventDTO),
+    this.router.get("/", this.acaraController.getAcaras),
+      validateBody(CreateAcaraDTO),
       this.router.post(
         "/",
         this.uploaderMiddleware
           .upload()
           .fields([{ name: "image", maxCount: 1 }]),
-        this.eventController.createEvent
+        this.acaraController.createAcara
       );
   };
 

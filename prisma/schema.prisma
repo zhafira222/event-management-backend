@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model categories {
@@ -14,7 +13,7 @@ model categories {
   category_field String   @db.VarChar(100)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
-  events         event[]
+  acaras         acara[]
 }
 
 model roles {
@@ -26,32 +25,31 @@ model roles {
 }
 
 model user {
-  id                      Int       @id @default(autoincrement())
-  full_name               String    @default("")
-  email                   String    @unique
-  password                String
-  phone_number            String
-  referral_code           String?   @unique
-  profile_image           String?
-  referrer_id             Int?
-  role_id                 Int
-  points_balance          Decimal?  @db.Decimal
+  id             Int      @id @default(autoincrement())
+  full_name      String   @default("")
+  email          String   @unique
+  password       String
+  phone_number   String
+  referral_code  String?  @unique
+  profile_image  String?
+  referrer_id    Int?
+  role_id        Int
+  points_balance Decimal? @db.Decimal
 
-  // TAMBAHAN UNTUK FORGOT PASSWORD
-  reset_password_token    String?
-  reset_password_expiry  DateTime?
+  reset_password_token  String?
+  reset_password_expiry DateTime?
 
-  created_at              DateTime  @default(now())
-  updated_at              DateTime  @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  referrer       user?        @relation("UserReferral", fields: [referrer_id], references: [id])
-  referrals      user[]       @relation("UserReferral")
+  referrer  user?  @relation("UserReferral", fields: [referrer_id], references: [id])
+  referrals user[] @relation("UserReferral")
 
-  role           roles        @relation(fields: [role_id], references: [role_id])
-  organizer      organizers?
-  points         points[]
-  reviews        reviews[]
-  transactions   transactions[]
+  role         roles          @relation(fields: [role_id], references: [role_id])
+  organizer    organizers?
+  points       points[]
+  reviews      reviews[]
+  transactions transactions[]
 }
 
 model organizers {
@@ -64,120 +62,120 @@ model organizers {
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
-  user              user     @relation(fields: [user_id], references: [id])
-  events            event[]
+  user   user    @relation(fields: [user_id], references: [id])
+  acaras acara[]
 }
 
-model event {
-  event_id      String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title         String
-  description   String
-  start_date    DateTime   @db.Timestamp(6)
-  end_date      DateTime   @db.Timestamp(6)
-  location      String
-  image         String
-  organizer_id  Int
-  category_id   Int
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
+model acara {
+  acara_id     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String
+  description  String
+  start_date   DateTime @db.Timestamp(6)
+  end_date     DateTime @db.Timestamp(6)
+  location     String
+  image        String
+  organizer_id Int
+  category_id  Int
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
-  organizers    organizers @relation(fields: [organizer_id], references: [organizer_id])
-  categories    categories @relation(fields: [category_id], references: [category_id])
-  coupons       coupons[]
-  tickets       tickets[]
-  reviews       reviews[]
-  transactions  transactions[]
+  organizers   organizers     @relation(fields: [organizer_id], references: [organizer_id])
+  categories   categories     @relation(fields: [category_id], references: [category_id])
+  coupons      coupons[]
+  tickets      tickets[]
+  reviews      reviews[]
+  transactions transactions[]
 }
 
 model coupons {
-  coupon_id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  coupon_id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code            String
-  discount_amount Decimal    @db.Decimal
+  discount_amount Decimal  @db.Decimal
   discount_name   String
   quota           BigInt
-  expires_at      DateTime   @db.Timestamp(6)
-  event_id        String     @db.Uuid
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  expires_at      DateTime @db.Timestamp(6)
+  acara_id        String   @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  events          event     @relation(fields: [event_id], references: [event_id])
-  transactions    transactions[]
+  acaras       acara          @relation(fields: [acara_id], references: [acara_id])
+  transactions transactions[]
 }
 
 model tickets {
-  ticket_id     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  event_id      String     @db.Uuid
-  name          String
-  price         Decimal    @db.Decimal
-  stock         Int        @db.SmallInt
-  description   String
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
+  ticket_id   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  acara_id    String   @db.Uuid
+  name        String
+  price       Decimal  @db.Decimal
+  stock       Int      @db.SmallInt
+  description String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
-  events        event     @relation(fields: [event_id], references: [event_id])
-  transactions  transactions[]
+  acaras       acara          @relation(fields: [acara_id], references: [acara_id])
+  transactions transactions[]
 }
 
 model transactions {
-  transaction_id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ticket_id              String     @db.Uuid
+  transaction_id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticket_id              String   @db.Uuid
   user_id                Int
-  event_id               String     @db.Uuid
-  qty                    Int        @default(1)
-  total_price            Decimal    @db.Decimal
-  status                 String     @default("pending")
-  coupon_id              String?    @db.Uuid
+  acara_id               String   @db.Uuid
+  qty                    Int      @default(1)
+  total_price            Decimal  @db.Decimal
+  status                 String   @default("pending")
+  coupon_id              String?  @db.Uuid
   payment_deadline       DateTime
   confirmation_deadline  DateTime
-  base_price_at_time_buy Decimal    @db.Decimal(12, 2)
-  created_at             DateTime   @default(now())
-  updated_at             DateTime   @updatedAt
+  base_price_at_time_buy Decimal  @db.Decimal(12, 2)
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
 
-  user          user         @relation(fields: [user_id], references: [id])
-  tickets       tickets      @relation(fields: [ticket_id], references: [ticket_id])
-  events        event       @relation(fields: [event_id], references: [event_id])
-  coupons       coupons?     @relation(fields: [coupon_id], references: [coupon_id])
-  payments      payments[]
-  reviews       reviews[]
-  points        points[]
+  user     user       @relation(fields: [user_id], references: [id])
+  tickets  tickets    @relation(fields: [ticket_id], references: [ticket_id])
+  acaras   acara      @relation(fields: [acara_id], references: [acara_id])
+  coupons  coupons?   @relation(fields: [coupon_id], references: [coupon_id])
+  payments payments[]
+  reviews  reviews[]
+  points   points[]
 }
 
 model payments {
-  payment_id      BigInt     @id @default(autoincrement())
-  payment_time    DateTime
-  image_url       String
-  transaction_id  String     @db.Uuid
-  created_at      DateTime   @default(now())
-  updated_at      DateTime   @updatedAt
+  payment_id     BigInt   @id @default(autoincrement())
+  payment_time   DateTime
+  image_url      String
+  transaction_id String   @db.Uuid
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
-  transactions    transactions @relation(fields: [transaction_id], references: [transaction_id])
+  transactions transactions @relation(fields: [transaction_id], references: [transaction_id])
 }
 
 model points {
-  point_id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  amount          Decimal    @db.Decimal
-  source          String
-  expires_at      DateTime
-  user_id         Int
-  transaction_id  String     @db.Uuid
-  created_at      DateTime   @default(now())
-  updated_at      DateTime   @updatedAt
+  point_id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  amount         Decimal  @db.Decimal
+  source         String
+  expires_at     DateTime
+  user_id        Int
+  transaction_id String   @db.Uuid
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
-  user            user         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  transactions    transactions @relation(fields: [transaction_id], references: [transaction_id])
+  user         user         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  transactions transactions @relation(fields: [transaction_id], references: [transaction_id])
 }
 
 model reviews {
-  review_id       BigInt     @id @default(autoincrement())
-  rating          Int
-  comment         String
-  user_id         Int
-  event_id        String     @db.Uuid
-  transaction_id  String     @db.Uuid
-  created_at      DateTime   @default(now())
-  updated_at      DateTime   @updatedAt
+  review_id      BigInt   @id @default(autoincrement())
+  rating         Int
+  comment        String
+  user_id        Int
+  acara_id       String   @db.Uuid
+  transaction_id String   @db.Uuid
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
-  user            user         @relation(fields: [user_id], references: [id])
-  events          event       @relation(fields: [event_id], references: [event_id])
-  transactions    transactions @relation(fields: [transaction_id], references: [transaction_id])
+  user         user         @relation(fields: [user_id], references: [id])
+  acaras       acara        @relation(fields: [acara_id], references: [acara_id])
+  transactions transactions @relation(fields: [transaction_id], references: [transaction_id])
 }
