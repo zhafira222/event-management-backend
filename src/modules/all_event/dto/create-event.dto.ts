@@ -9,7 +9,7 @@ import {
 
 import { Transform } from "class-transformer";
 
-export class CreateAcaraDTO {
+export class CreateEventDTO {
   @IsString()
   @IsNotEmpty()
   title!: string;

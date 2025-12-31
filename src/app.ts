@@ -4,7 +4,7 @@ import express, { Express } from "express";
 import { PORT } from "./config/env";
 import { errorMiddleware } from "./middlewares/error.middleware";
 // import { SampleRouter } from "./modules/sample/sample.router";
-import { EventRouter } from "./modules/all_event/acara.router";
+import { EventRouter } from "./modules/all_event/event.router";
 
 export class App {
   app: Express;

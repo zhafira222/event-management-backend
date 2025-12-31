@@ -52,7 +52,7 @@ export const registerService = async (body: {
     const expiredAt = new Date();
     expiredAt.setMonth(expiredAt.getMonth() + 3);
 
-    const referralEvent = await prisma.events.findFirst();
+    const referralEvent = await prisma.event.findFirst();
     if (!referralEvent) throw new ApiError("No event found for coupon", 500);
 
     const dummyTransaction = await prisma.transactions.findFirst();
