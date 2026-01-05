@@ -3,8 +3,8 @@ import {
   getUsersController,
   getUserController,
   updateUserController,
-} from "../controllers/user.controller";
-import { verifyToken, requireRole } from "../middlewares/jwt.middleware";
+} from "./user.controller";
+import { verifyToken, requireRole } from "../../middlewares/jwt.middleware";
 
 const router = express.Router();
 

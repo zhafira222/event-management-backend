@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "../config/prisma";
-import { PaginationQueryParams } from "../modules/pagination/dto/pagination";
-import { ApiError } from "../utils/api-error";
+import { prisma } from "../../config/prisma";
+import { PaginationQueryParams } from "../../types/pagination";
+import { ApiError } from "../../utils/api-error";
 
 // QUERY GET USERS (LIST + SEARCH)
 // ORGANIZER ONLY (via router)

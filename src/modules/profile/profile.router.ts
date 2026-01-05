@@ -4,8 +4,8 @@ import {
   updateProfileController,
   uploadProfileImageController,
   changePasswordController,
-} from "../controllers/profile.controller";
-import { verifyToken } from "../middlewares/jwt.middleware";
+} from "../profile/profile.controller";
+import { verifyToken } from "../../middlewares/jwt.middleware";
 
 const router = express.Router();
 

@@ -3,7 +3,7 @@ import {
   updateProfileImageService,
   updateProfileService,
   changePasswordService, // WAJIB
-} from "../services/profile.service";
+} from "../profile/profile.service";
 
 /* GET PROFILE (SELF)
  * GET /api/profile */
