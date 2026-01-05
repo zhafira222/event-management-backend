@@ -30,7 +30,6 @@ router.put("/", verifyToken, updateProfileController);
 router.put(
   "/image",
   verifyToken,
-  upload.single("image"),
   uploadProfileImageController
 );
 
