@@ -8,6 +8,8 @@ import { AuthRouter } from "./modules/auth/auth.router";
 import { PromotionRouter } from "./modules/Promotion/promotion.router";
 import { TransactionRouter } from "./modules/transaction/transaction.router";
 import { ReviewRouter } from "./modules/review/review.router";
+import { CategoryRouter } from "./modules/categories/category.router";
+import { TicketRouter } from "./modules/tickets/ticket.router";
 
 export class App {
   app: Express;
@@ -26,14 +28,18 @@ export class App {
   }
 
   private routes() {
-    const eventRouter = new EventRouter();
     const authRouter = new AuthRouter();
+    const eventRouter = new EventRouter();
+    const categoryRouter = new CategoryRouter();
+    const ticketRouter = new TicketRouter();
     const promotionRouter = new PromotionRouter();
     const transactionRouter = new TransactionRouter();
     const reviewRouter = new ReviewRouter();
 
-    this.app.use("/events", eventRouter.getRouter());
     this.app.use("/auth", authRouter.getRouter());
+    this.app.use("/events", eventRouter.getRouter());
+    this.app.use("/categories", categoryRouter.getRouter());
+    this.app.use("/tickets", ticketRouter.getRouter());
     this.app.use("/promotions", promotionRouter.getRouter());
     this.app.use("/transactions", transactionRouter.getRouter());
     this.app.use("/reviews", reviewRouter.getRouter());

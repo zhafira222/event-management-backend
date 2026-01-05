@@ -12,7 +12,8 @@ export class EventController {
 
   createEvent = async (req: Request, res: Response) => {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-    const image = files.image[0];
+    const image = files.image?.[0];
+
     if (!image) throw new ApiError("image is required", 400);
 
     const authUserId = Number(res.locals.user.id);

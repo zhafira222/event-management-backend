@@ -122,12 +122,17 @@ export class EventService {
       where: whereClause,
       take,
       skip: (page - 1) * take,
-      orderBy: { [sortBy]: sortOrder },
+      orderBy: { created_at: "desc" },
       include: {
         organizers: {
           select: {
             organization_name: true,
           },
+        },
+        categories: { 
+          select: {  
+            category_name: true, 
+          } 
         },
       },
     });
@@ -147,15 +152,15 @@ export class EventService {
           },
         },
         tickets: {
-        select: {
-          ticket_id: true,
-          name: true,
-          price: true,
-          stock: true,
-          description: true,
+          select: {
+            ticket_id: true,
+            name: true,
+            price: true,
+            stock: true,
+            description: true,
+          },
+          orderBy: { created_at: "asc" },
         },
-        orderBy: { created_at: "asc" },
-      },
       },
     });
 

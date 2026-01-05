@@ -20,7 +20,9 @@ export class PromotionRouter {
   }
 
   private initRoutes = () => {
-    // create promotion (requires login + image upload)
+
+    this.router.get("/validate", this.promotionController.validatePromotion);
+
     this.router.post(
       "/",
       this.jwttMiddleware.verifyToken(process.env.JWT_SECRET!),
@@ -29,7 +31,6 @@ export class PromotionRouter {
       this.promotionController.createPromotion
     );
 
-    // get promotions (requires login)
     this.router.get(
       "/",
       this.jwttMiddleware.verifyToken(process.env.JWT_SECRET!),

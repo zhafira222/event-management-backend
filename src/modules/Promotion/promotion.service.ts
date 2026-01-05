@@ -13,12 +13,16 @@ export class PromotionService {
     this.cloudinaryService = new CloudinaryService();
   }
 
+  private decimalToNumber(value: any) {
+    if (value?.toNumber) return value.toNumber();
+    return Number(value);
+  }
+
   createPromotion = async (
     body: CreatePromotionDTO,
     image: Express.Multer.File,
     authUserId: number
   ) => {
-    // 1) pastikan user adalah organizer
     const organizer = await this.prisma.organizers.findUnique({
       where: { user_id: authUserId },
       select: { organizer_id: true },
@@ -28,7 +32,6 @@ export class PromotionService {
       throw new ApiError("Organizer profile not found for this user.", 403);
     }
 
-    // 2) pastikan event exists & milik organizer ini
     const event = await this.prisma.event.findFirst({
       where: {
         event_id: body.event_id,
@@ -44,7 +47,6 @@ export class PromotionService {
       );
     }
 
-    // 3) cek unique discount_name (sesuai schema)
     const existingByName = await this.prisma.coupons.findFirst({
       where: { discount_name: body.discount_name },
       select: { coupon_id: true },
@@ -54,7 +56,6 @@ export class PromotionService {
       throw new ApiError("The promotion name already exists.", 400);
     }
 
-    // 4) (opsional tapi aman) cek code tidak duplikat
     const existingByCode = await this.prisma.coupons.findFirst({
       where: { code: body.code },
       select: { coupon_id: true },
@@ -64,10 +65,8 @@ export class PromotionService {
       throw new ApiError("The promo code already exists.", 400);
     }
 
-    // 5) upload image promo ke cloudinary
     const { secure_url } = await this.cloudinaryService.upload(image);
 
-    // 6) create coupon
     await this.prisma.coupons.create({
       data: {
         code: body.code.trim(),
@@ -84,6 +83,47 @@ export class PromotionService {
     return { message: "Promotion created successfully!" };
   };
 
+  validatePromotion = async (code: string, eventId: string) => {
+    const now = new Date();
+
+    const coupon = await this.prisma.coupons.findFirst({
+      where: {
+        event_id: eventId,
+        code: { equals: code.trim(), mode: "insensitive" },
+      },
+      select: {
+        coupon_id: true,
+        code: true,
+        discount_name: true,
+        discount_amount: true,
+        quota: true,
+        expires_at: true,
+        event_id: true,
+      },
+    });
+
+    if (!coupon) {
+      throw new ApiError("Promo code not found for this event.", 404);
+    }
+
+    if (coupon.expires_at.getTime() < now.getTime()) {
+      throw new ApiError("Promo code is expired.", 400);
+    }
+
+    if (coupon.quota <= 0) {
+      throw new ApiError("Promo quota has been used up.", 400);
+    }
+
+    return {
+      coupon_id: coupon.coupon_id,
+      code: coupon.code,
+      discount_name: coupon.discount_name,
+      discount_amount: this.decimalToNumber(coupon.discount_amount),
+      expires_at: coupon.expires_at,
+      event_id: coupon.event_id,
+    };
+  };
+
   getPromotions = async (authUserId: number) => {
     const organizer = await this.prisma.organizers.findUnique({
       where: { user_id: authUserId },
@@ -97,13 +137,23 @@ export class PromotionService {
     const promotions = await this.prisma.coupons.findMany({
       where: { organizer_id: organizer.organizer_id },
       orderBy: { createdAt: "desc" },
-      include: {
-        events: {
-          select: { title: true, },
-        },
+      select: {
+        coupon_id: true,
+        code: true,
+        discount_name: true,
+        discount_amount: true,
+        expires_at: true,
+        event_id: true,
+        image: true,
+        createdAt: true,
+        updatedAt: true,
+        events: { select: { title: true } },
       },
     });
 
-    return promotions;
+    return promotions.map((p) => ({
+      ...p,
+      discount_amount: this.decimalToNumber(p.discount_amount),
+    }));
   };
 }
