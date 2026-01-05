@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { TransactionService } from "./transaction.service";
+import { ApiError } from "../../utils/api-error";
 
 export class TransactionController {
   transactionService: TransactionService;
@@ -18,4 +19,21 @@ export class TransactionController {
 
     return res.status(200).send(result);
   };
+
+uploadPaymentProof = async (req: Request, res: Response) => {
+  const authUserId = Number(res.locals.user.id);
+  const transactionId = req.params.transactionId;
+
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  const image = files?.image?.[0];
+  if (!image) throw new ApiError("image is required", 400);
+
+  const result = await this.transactionService.uploadPaymentProof(
+    transactionId,
+    image,
+    authUserId
+  );
+
+  return res.status(200).send(result);
+};
 }

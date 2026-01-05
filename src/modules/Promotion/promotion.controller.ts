@@ -35,4 +35,24 @@ export class PromotionController {
       data: result,
     });
   };
+
+  validatePromotion = async (req: Request, res: Response) => {
+    const code = req.query.code;
+    const eventId = req.query.event_id;
+
+    if (!code || typeof code !== "string") {
+      throw new ApiError("code is required", 400);
+    }
+
+    if (!eventId || typeof eventId !== "string") {
+      throw new ApiError("event_id is required", 400);
+    }
+
+    const result = await this.promotionService.validatePromotion(code, eventId);
+
+    return res.status(200).send({
+      message: "Promo is valid",
+      data: result,
+    });
+  };
 }
