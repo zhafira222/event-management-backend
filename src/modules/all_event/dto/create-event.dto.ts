@@ -1,11 +1,5 @@
 // src/dto/create-event.dto.ts
-import {
-  IsInt,
-  IsNotEmpty,
-  IsString,
-  IsUrl,
-  IsDateString,
-} from "class-validator";
+import { IsDateString, IsInt, IsNotEmpty, IsString } from "class-validator";
 
 import { Transform } from "class-transformer";
 
@@ -35,8 +29,7 @@ export class CreateEventDTO {
   @Transform(({ value }) => parseInt(value))
   category_id!: number;
 
-  @IsInt()
   @IsNotEmpty()
-  @Transform(({ value }) => parseInt(value))
-  organizer_id!: number;
+  @IsString()
+  tickets!: string;
 }

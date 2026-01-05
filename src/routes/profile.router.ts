@@ -6,7 +6,6 @@ import {
   changePasswordController,
 } from "../controllers/profile.controller";
 import { verifyToken } from "../middlewares/jwt.middleware";
-import { upload } from "../middlewares/upload.middleware";
 
 const router = express.Router();
 
@@ -30,7 +29,6 @@ router.put("/", verifyToken, updateProfileController);
 router.put(
   "/image",
   verifyToken,
-  upload.single("image"),
   uploadProfileImageController
 );
 
