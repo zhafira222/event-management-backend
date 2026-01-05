@@ -25,7 +25,7 @@ export const createTicketService = async (
   }
 
   // Mastiin event milik organizer tsb
-  const event = await prisma.events.findFirst({
+  const event = await prisma.event.findFirst({
     where: {
       event_id: body.event_id,
       organizer_id: organizer.organizer_id,
