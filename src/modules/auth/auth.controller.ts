@@ -1,89 +1,31 @@
-import { Request, Response, NextFunction } from "express";
-import {
-  loginService,
-  registerService,
-  forgotPasswordService,
-  resetPasswordService,
-} from "../auth/auth.service";
+import { Request, Response } from "express";
+import { AuthService } from "./auth.service";
 
-/*
- * REGISTER
- */
-export const registerController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const result = await registerService(req.body);
-    return res.status(201).json(result);
-  } catch (error) {
-    next(error);
+export class AuthController {
+  authService: AuthService;
+
+  constructor() {
+    this.authService = new AuthService();
   }
-};
 
-/*
- * LOGIN
- */
-export const loginController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const result = await loginService(req.body);
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
-};
+  register = async (req: Request, res: Response) => {
+    const result = await this.authService.register(req.body);
+    return res.status(200).send(result);
+  };
 
-/*
- * FORGOT PASSWORD
- * POST /api/auth/forgot-password
- */
-export const forgotPasswordController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { email } = req.body;
+  login = async (req: Request, res: Response) => {
+    const result = await this.authService.login(req.body);
+    return res.status(200).send(result);
+  };
 
-    if (!email) {
-      return res.status(400).json({
-        message: "Email is required",
-      });
-    }
+  forgotPassword = async (req: Request, res: Response) => {
+    const result = await this.authService.forgotPassword(req.body);
+    return res.status(200).send(result);
+  };
 
-    const result = await forgotPasswordService(email);
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
-};
-
-/*
- * RESET PASSWORD
- * POST /api/auth/reset-password
- */
-export const resetPasswordController = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { token, newPassword } = req.body;
-
-    if (!token || !newPassword) {
-      return res.status(400).json({
-        message: "Token and new password are required",
-      });
-    }
-
-    const result = await resetPasswordService(token, newPassword);
-    return res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
-};
+  resetPassword = async (req: Request, res: Response) => {
+    const authUserId = Number(res.locals.user.id);
+    const result = await this.authService.resetPassword(req.body, authUserId);
+    return res.status(200).send(result);
+  };
+}

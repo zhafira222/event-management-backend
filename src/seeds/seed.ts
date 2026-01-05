@@ -67,11 +67,12 @@ async function main() {
 
   // EVENT
 
-  const event = await prisma.events.create({
+  const event = await prisma.event.create({
     data: {
       title: "Konser Indie 2025",
       description: "Konser musik indie terbesar",
-      date: new Date("2025-12-20"),
+      start_date: new Date("2025-12-20"),
+      end_date: new Date("2025-12-21"),
       location: "Jakarta",
       image: "event.jpg",
       organizer_id: organizer.organizer_id,

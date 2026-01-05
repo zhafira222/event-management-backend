@@ -1,26 +1,42 @@
-import nodemailer from "nodemailer";
+import { createTransport, Transporter } from "nodemailer";
+import { MAIL_PASS, MAIL_USER } from "../../config/env";
+import path from "path";
+import fs from "fs/promises";
+import handlebars from "handlebars";
 
 export class MailService {
-  private transporter;
+  transporter: Transporter;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: false, // gmail = false (port 587)
+    this.transporter = createTransport({
+      service: "gmail",
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: MAIL_USER,
+        pass: MAIL_PASS,
       },
     });
   }
 
-  async sendEmail(to: string, subject: string, html: string) {
+  private renderTemplate = async (templateName: string, context: object) => {
+    const templateDir = path.resolve(__dirname, "./templates");
+    const templatePath = path.join(templateDir, `${templateName}.hbs`);
+    const templateSource = await fs.readFile(templatePath, "utf-8");
+    const compiledTemplate = handlebars.compile(templateSource);
+    return compiledTemplate(context);
+  };
+
+  sendEmail = async (
+    to: string,
+    subject: string,
+    templateName: string,
+    context: object
+  ) => {
+    const html = await this.renderTemplate(templateName, context);
+
     await this.transporter.sendMail({
-      from: `"Event App" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,
     });
-  }
+  };
 }
