@@ -1,4 +1,5 @@
-import { IsInt, IsNotEmpty, IsOptional, IsUUID, Min } from "class-validator";
+// src/modules/transaction/dto/create-transaction.dto.ts
+import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from "class-validator";
 import { Transform } from "class-transformer";
 
 export class CreateTransactionDTO {
@@ -16,7 +17,13 @@ export class CreateTransactionDTO {
   @Min(1)
   qty?: number;
 
-  @IsUUID()
+  @IsString()
   @IsOptional()
-  coupon_id?: string;
+  coupon_code?: string;
+
+  @IsInt()
+  @IsOptional()
+  @Transform(({ value }) => (value === undefined ? undefined : Number(value)))
+  @Min(0)
+  points_used?: number;
 }

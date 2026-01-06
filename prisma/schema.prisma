@@ -154,6 +154,7 @@ enum TransactionStatus {
   PAID
   REJECT
   EXPIRED
+  CANCELED
   WAITING_FOR_REVIEW
   REVIEW_DONE
 }
@@ -175,12 +176,12 @@ model points {
   source         String
   expires_at     DateTime
   user_id        Int
-  transaction_id String   @db.Uuid
+  transaction_id String?  @db.Uuid 
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
-  user         user         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  transactions transactions @relation(fields: [transaction_id], references: [transaction_id])
+  user         user          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  transactions transactions? @relation(fields: [transaction_id], references: [transaction_id])
 }
 
 model reviews {

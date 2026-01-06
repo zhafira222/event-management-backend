@@ -109,65 +109,72 @@ export class EventService {
     return { message: "Event created successfully!" };
   };
 
-  getEvents = async (query: GetEventDTO) => {
-    const { page, take, sortBy, sortOrder, search } = query;
+  // event.service.ts
+getEvents = async (query: GetEventDTO) => {
+  const { page, take, sortBy, sortOrder, search, category_id } = query;
 
-    const whereClause: Prisma.eventWhereInput = {};
+  const whereClause: Prisma.eventWhereInput = {};
 
-    if (search) {
-      whereClause.title = { contains: search, mode: "insensitive" };
-    }
+  if (search) {
+    whereClause.title = { contains: search, mode: "insensitive" };
+  }
 
-    const events = await this.prisma.event.findMany({
-      where: whereClause,
-      take,
-      skip: (page - 1) * take,
-      orderBy: { created_at: "desc" },
-      include: {
-        organizers: {
-          select: {
-            organization_name: true,
-          },
-        },
-        categories: { 
-          select: {  
-            category_name: true, 
-          } 
-        },
+  if (category_id) {
+    whereClause.category_id = category_id;
+  }
+
+  const events = await this.prisma.event.findMany({
+    where: whereClause,
+    take,
+    skip: (page - 1) * take,
+    orderBy: { [sortBy]: sortOrder },
+    select: {
+      event_id: true,
+      title: true,
+      slug: true, // ✅ dipaksa ikut
+      description: true,
+      start_date: true,
+      end_date: true,
+      location: true,
+      image: true,
+      category_id: true,
+      created_at: true,
+      updated_at: true,
+
+      organizers: {
+        select: { organization_name: true },
       },
-    });
+      categories: {
+        select: { category_name: true },
+      },
+    },
+  });
 
-    const total = await this.prisma.event.count({ where: whereClause });
+  const total = await this.prisma.event.count({ where: whereClause });
 
-    return { data: events, meta: { page, take, total } };
-  };
+  return { data: events, meta: { page, take, total } };
+};
 
   getEventBySlug = async (slug: string) => {
-    const event = await this.prisma.event.findFirst({
-      where: { slug },
-      include: {
-        organizers: {
-          select: {
-            organization_name: true,
-          },
+  const event = await this.prisma.event.findFirst({
+    where: { slug },
+    include: {
+      organizers: { select: { organization_name: true } },
+      categories: { select: { category_name: true } }, // ✅ tambah ini
+      tickets: {
+        select: {
+          ticket_id: true,
+          name: true,
+          price: true,
+          stock: true,
+          description: true,
         },
-        tickets: {
-          select: {
-            ticket_id: true,
-            name: true,
-            price: true,
-            stock: true,
-            description: true,
-          },
-          orderBy: { created_at: "asc" },
-        },
+        orderBy: { created_at: "asc" },
       },
-    });
+    },
+  });
 
-    if (!event) {
-      throw new ApiError("Event not found", 404);
-    }
-
-    return event;
-  };
+  if (!event) throw new ApiError("Event not found", 404);
+  return event;
+};
 }
