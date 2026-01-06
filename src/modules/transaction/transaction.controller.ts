@@ -20,20 +20,32 @@ export class TransactionController {
     return res.status(200).send(result);
   };
 
-uploadPaymentProof = async (req: Request, res: Response) => {
-  const authUserId = Number(res.locals.user.id);
-  const transactionId = req.params.transactionId;
+  getTransactionById = async (req: Request, res: Response) => {
+    const authUserId = Number(res.locals.user.id);
+    const transactionId = req.params.transactionId;
 
-  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-  const image = files?.image?.[0];
-  if (!image) throw new ApiError("image is required", 400);
+    const trx = await this.transactionService.getTransactionById(
+      transactionId,
+      authUserId
+    );
 
-  const result = await this.transactionService.uploadPaymentProof(
-    transactionId,
-    image,
-    authUserId
-  );
+    return res.status(200).send({ data: trx });
+  };
 
-  return res.status(200).send(result);
-};
+  uploadPaymentProof = async (req: Request, res: Response) => {
+    const authUserId = Number(res.locals.user.id);
+    const transactionId = req.params.transactionId;
+
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const image = files?.image?.[0];
+    if (!image) throw new ApiError("image is required", 400);
+
+    const result = await this.transactionService.uploadPaymentProof(
+      transactionId,
+      image,
+      authUserId
+    );
+
+    return res.status(200).send(result);
+  };
 }

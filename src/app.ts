@@ -4,14 +4,15 @@ import cors from "cors";
 import express, { Express } from "express";
 import { PORT } from "./config/env";
 import { errorMiddleware } from "./middlewares/error.middleware";
-
 import { EventRouter } from "./modules/all_event/event.router";
 import { AuthRouter } from "./modules/auth/auth.router";
-import { PromotionRouter } from "./modules/Promotion/promotion.router";
+import { PromotionRouter } from "./modules/promotion/promotion.router";
 import { TransactionRouter } from "./modules/transaction/transaction.router";
 import { ReviewRouter } from "./modules/review/review.router";
 import { CategoryRouter } from "./modules/categories/category.router";
 import { TicketRouter } from "./modules/tickets/ticket.router";
+
+import { TransactionService } from "./modules/transaction/transaction.service";
 
 export class App {
   app: Express;
@@ -31,7 +32,7 @@ export class App {
   }
 
   private routes() {
-  const authRouter = new AuthRouter();
+    const authRouter = new AuthRouter();
     const eventRouter = new EventRouter();
     const categoryRouter = new CategoryRouter();
     const ticketRouter = new TicketRouter();
@@ -55,6 +56,16 @@ export class App {
   public start() {
     this.app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+
+      const transactionService = new TransactionService();
+
+      setInterval(async () => {
+        try {
+          await transactionService.runHousekeeping();
+        } catch (e) {
+          console.error("[housekeeping] error:", e);
+        }
+      }, 60_000);
     });
   }
 }
