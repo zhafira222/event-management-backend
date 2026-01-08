@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, TransactionStatus } from "@prisma/client";
 import { ApiError } from "../../utils/api-error";
 import { PrismaService } from "../prisma/prisma.service";
 import { CloudinaryService } from "../cloudinary/cloudinary.service";
@@ -9,13 +9,141 @@ function addMonths(date: Date, months: number) {
   d.setMonth(d.getMonth() + months);
   return d;
 }
+function mapStatusQueryToDb(status?: string): TransactionStatus[] | null {
+  if (!status) return null;
 
+  const s = String(status).toLowerCase();
+  if (s === "to-pay") return [TransactionStatus.WAITING_FOR_PAYMENT];
+  if (s === "to-confirm") return [TransactionStatus.WAITING_FOR_CONFIRMATION];
+  if (s === "my-booking")
+    return [
+      TransactionStatus.PAID,
+      TransactionStatus.WAITING_FOR_REVIEW,
+      TransactionStatus.REVIEW_DONE,
+    ];
+  if (s === "to-rate") return [TransactionStatus.WAITING_FOR_REVIEW];
+
+  return null;
+}
 export class TransactionService {
   prisma: PrismaService;
 
   constructor() {
     this.prisma = new PrismaService();
   }
+
+  getMyTransactions = async (
+  query: {
+    page?: any;
+    take?: any;
+    status?: any;
+    sortBy?: any;
+    sortOrder?: any;
+  },
+  authUserId: number
+) => {
+  const page = Math.max(1, Number(query.page ?? 1));
+  const take = Math.min(50, Math.max(1, Number(query.take ?? 10)));
+
+  const sortBy = ["created_at", "updated_at"].includes(String(query.sortBy))
+    ? String(query.sortBy)
+    : "created_at";
+
+  const sortOrder =
+    String(query.sortOrder).toLowerCase() === "asc" ? "asc" : "desc";
+
+  const statuses = mapStatusQueryToDb(query.status);
+
+  const where: Prisma.transactionsWhereInput = {
+    user_id: authUserId,
+    ...(statuses ? { status: { in: statuses } } : {}),
+  };
+
+  const [rows, total] = await this.prisma.$transaction([
+    this.prisma.transactions.findMany({
+      where,
+      take,
+      skip: (page - 1) * take,
+      orderBy: { [sortBy]: sortOrder as any },
+      select: {
+        transaction_id: true,
+        status: true,
+        qty: true,
+        base_price_at_time_buy: true,
+        payment_deadline: true,
+        confirmation_deadline: true,
+        created_at: true,
+        updated_at: true,
+        event_id: true,
+        ticket_id: true,
+        coupon_id: true,
+
+        events: {
+          select: {
+            title: true,
+            start_date: true,
+            end_date: true,
+            image: true,
+            slug: true,
+          },
+        },
+        tickets: { select: { name: true } },
+        coupons: {
+          select: { code: true, discount_amount: true, discount_name: true },
+        },
+      },
+    }),
+    this.prisma.transactions.count({ where }),
+  ]);
+
+  const trxIds = rows.map((r) => r.transaction_id);
+
+  const redeemGroups =
+    trxIds.length === 0
+      ? []
+      : await this.prisma.points.groupBy({
+          by: ["transaction_id"],
+          where: {
+            transaction_id: { in: trxIds },
+            user_id: authUserId,
+            source: "REDEEM",
+          },
+          _sum: { amount: true },
+        });
+
+  const redeemMap = new Map<string, number>();
+  for (const g of redeemGroups) {
+    const sumNeg = g._sum.amount
+      ? new Prisma.Decimal(g._sum.amount).toNumber()
+      : 0;
+    const abs = Math.max(0, -sumNeg);
+    if (g.transaction_id) redeemMap.set(g.transaction_id, abs);
+  }
+
+  const data = rows.map((r) => {
+    const baseTotal = r.base_price_at_time_buy * r.qty;
+
+    const discount = r.coupons?.discount_amount
+      ? new Prisma.Decimal(r.coupons.discount_amount).toNumber()
+      : 0;
+
+    const pointsUsed = redeemMap.get(r.transaction_id) ?? 0;
+
+    const totalPrice = Math.max(0, baseTotal - discount - pointsUsed);
+
+    return {
+      ...r,
+      computed: {
+        base_total: baseTotal,
+        discount,
+        points_used: pointsUsed,
+        total_price: totalPrice,
+      },
+    };
+  });
+
+  return { data, meta: { page, take, total } };
+};
 
   /** EXPIRED: lewat 2 jam dan belum upload proof */
   expireUnpaid = async () => {

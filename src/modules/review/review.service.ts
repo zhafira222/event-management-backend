@@ -23,6 +23,7 @@ export class ReviewService {
           select: {
             event_id: true,
             organizer_id: true,
+            end_date: true,
           },
         },
       },
@@ -40,9 +41,17 @@ export class ReviewService {
       throw new ApiError("Event ID does not match this transaction.", 400);
     }
 
+    const now = new Date();
+    if (trx.events.end_date > now) {
+      throw new ApiError("You can review only after the event has ended.", 400);
+    }
+
     // 4) pastikan status transaksi tidak pending
-    if ((trx.status ?? "").toLowerCase() === "pending") {
-      throw new ApiError("You can review only after the transaction is processed.", 400);
+    if (!["PAID", "WAITING_FOR_REVIEW", "REVIEW_DONE"].includes(trx.status)) {
+      throw new ApiError(
+        "You can review only after payment is completed.",
+        400
+      );
     }
 
     // 5) pastikan 1 transaksi hanya 1 review
@@ -73,24 +82,26 @@ export class ReviewService {
       // ambil organizer current stats
       const org = await tx.organizers.findUnique({
         where: { organizer_id: trx.events.organizer_id },
-        select: { organizer_id: true, average_rating: true, total_reviews: true },
+        select: {
+          organizer_id: true,
+          average_rating: true,
+          total_reviews: true,
+        },
       });
 
       if (!org) {
-        // harusnya tidak terjadi kalau data konsisten
         throw new ApiError("Organizer not found.", 404);
       }
 
       const prevTotal = org.total_reviews ?? 0;
       const prevAvg = new Prisma.Decimal(org.average_rating ?? 0);
 
-      // newAvg = (prevAvg * prevTotal + rating) / (prevTotal + 1)
       const newTotal = prevTotal + 1;
       const newAvg = prevAvg
         .mul(prevTotal)
         .plus(body.rating)
         .div(newTotal)
-        .toDecimalPlaces(2); // sesuai Decimal(3,2)
+        .toDecimalPlaces(2);
 
       await tx.organizers.update({
         where: { organizer_id: org.organizer_id },
@@ -109,7 +120,6 @@ export class ReviewService {
     };
   };
 
-  // OPTIONAL: untuk tampilkan review di event detail page
   getReviewsByEventId = async (eventId: string) => {
     const reviews = await this.prisma.reviews.findMany({
       where: { event_id: eventId },

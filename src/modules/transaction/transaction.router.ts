@@ -20,6 +20,12 @@ export class TransactionRouter {
   }
 
   private initRoutes = () => {
+    this.router.get(
+      "/me",
+      this.jwttMiddleware.verifyToken(process.env.JWT_SECRET!),
+      this.transactionController.getMyTransactions
+    );
+
     this.router.post(
       "/",
       this.jwttMiddleware.verifyToken(process.env.JWT_SECRET!),

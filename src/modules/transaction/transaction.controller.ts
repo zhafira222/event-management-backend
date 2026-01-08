@@ -20,6 +20,20 @@ export class TransactionController {
     return res.status(200).send(result);
   };
 
+   getMyTransactions = async (req: Request, res: Response) => {
+    const authUserId = Number(res.locals.user.id);
+
+    const result = await this.transactionService.getMyTransactions(
+      req.query as any,
+      authUserId
+    );
+
+    return res.status(200).send({
+      message: "Get my transactions success",
+      ...result,
+    });
+  };
+
   getTransactionById = async (req: Request, res: Response) => {
     const authUserId = Number(res.locals.user.id);
     const transactionId = req.params.transactionId;
