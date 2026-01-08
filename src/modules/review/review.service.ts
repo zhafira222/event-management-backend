@@ -37,9 +37,9 @@ export class ReviewService {
     }
 
     // 3) pastikan event_id sesuai transaksi
-    if (trx.event_id !== body.event_id) {
-      throw new ApiError("Event ID does not match this transaction.", 400);
-    }
+    // if (trx.event_id !== body.event_id) {
+    //   throw new ApiError("Event ID does not match this transaction.", 400);
+    // }
 
     const now = new Date();
     if (trx.events.end_date > now) {
