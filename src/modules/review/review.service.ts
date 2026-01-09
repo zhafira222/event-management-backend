@@ -23,7 +23,6 @@ export class ReviewService {
             event_id: true,
             end_date: true,
             organizer_id: true,
-            end_date: true,
           },
         },
       },
