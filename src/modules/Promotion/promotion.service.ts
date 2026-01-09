@@ -157,6 +157,30 @@ export class PromotionService {
     }));
   };
 
+  getPromotionsPublic = async () => {
+    const promotions = await this.prisma.coupons.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        coupon_id: true,
+        code: true,
+        discount_name: true,
+        discount_amount: true,
+        expires_at: true,
+        event_id: true,
+        image: true,
+        createdAt: true,
+        updatedAt: true,
+        events: { select: { title: true, start_date: true, end_date: true } },
+      },
+    });
+
+    return promotions.map((p) => ({
+      ...p,
+      discount_amount: this.decimalToNumber(p.discount_amount),
+    }));
+  };
+
+
   getPromotionsByOrganizerId = async (organizerId: number) => {
   const promotions = await this.prisma.coupons.findMany({
     where: { organizer_id: organizerId },

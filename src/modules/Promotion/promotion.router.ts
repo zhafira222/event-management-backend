@@ -28,6 +28,7 @@ export class PromotionRouter {
     this.promotionController.getPromotionsByOrganizerId
   );
 
+
     this.router.post(
       "/",
       this.jwttMiddleware.verifyToken(process.env.JWT_SECRET!),
@@ -40,6 +41,11 @@ export class PromotionRouter {
       "/",
       this.jwttMiddleware.verifyToken(process.env.JWT_SECRET!),
       this.promotionController.getPromotions
+    );
+
+    this.router.get(
+      "/public",
+      this.promotionController.getPromotionsPublic
     );
   };
 

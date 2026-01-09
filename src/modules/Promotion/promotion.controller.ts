@@ -36,6 +36,14 @@ export class PromotionController {
     });
   };
 
+    getPromotionsPublic = async (req: Request, res: Response) => {
+    const result = await this.promotionService.getPromotionsPublic();
+    return res.status(200).send({
+      message: "Get promotions success",
+      data: result,
+    });
+  };
+
   validatePromotion = async (req: Request, res: Response) => {
     const code = req.query.code;
     const eventId = req.query.event_id;
