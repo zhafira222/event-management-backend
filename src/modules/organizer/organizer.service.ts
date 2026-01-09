@@ -322,3 +322,85 @@ export class OrganizerService {
     }));
   };
 }
+
+/**
+ * ==================================================
+ * SERVICE WRAPPERS (UNTUK ROUTER)
+ * ==================================================
+ * Dibuat agar router bisa import function-style
+ * TANPA mengubah logic class OrganizerService
+ */
+
+const organizerService = new OrganizerService();
+
+/**
+ * CREATE ORGANIZER PROFILE
+ * POST /api/organizer/profile
+ */
+export const createOrganizerProfileService = (
+  userId: number,
+  body: {
+    organization_name: string;
+    description?: string;
+    phone?: string;
+  }
+) => organizerService.createOrganizerProfile(userId, body);
+
+/**
+ * CREATE EVENT
+ * POST /api/organizer/events
+ */
+export const createEventService = (
+  userId: number,
+  body: {
+    title: string;
+    description: string;
+    start_date: Date;
+    end_date: Date;
+    location: string;
+    image: string;
+    category_id: number;
+  }
+) => organizerService.createEvent(userId, body);
+
+/**
+ * GET ORGANIZER EVENTS
+ * GET /api/organizer/events
+ */
+export const getOrganizerEventsService = (userId: number) =>
+  organizerService.getOrganizerEvents(userId);
+
+/**
+ * GET ORGANIZER TRANSACTIONS
+ * GET /api/organizer/transactions
+ */
+export const getOrganizerTransactionsService = (userId: number) =>
+  organizerService.getOrganizerTransactions(userId);
+
+/**
+ * ACCEPT TRANSACTION
+ * PATCH /api/organizer/transactions/:id/accept
+ */
+export const acceptTransactionService = (transactionId: string) =>
+  organizerService.acceptTransaction(transactionId);
+
+/**
+ * REJECT TRANSACTION
+ * PATCH /api/organizer/transactions/:id/reject
+ */
+export const rejectTransactionService = (transactionId: string) =>
+  organizerService.rejectTransaction(transactionId);
+
+/**
+ * EVENT ATTENDEES
+ * GET /api/organizer/events/:eventId/attendees
+ */
+export const getEventAttendeesService = (eventId: string) =>
+  organizerService.getEventAttendees(eventId);
+
+/**
+ * ORGANIZER STATISTICS
+ * GET /api/organizer/stats
+ */
+export const getOrganizerStatsService = (userId: number) =>
+  organizerService.getOrganizerStats(userId);
