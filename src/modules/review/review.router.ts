@@ -17,7 +17,6 @@ export class ReviewRouter {
   }
 
   private initRoutes = () => {
-    // create review (login required)
     this.router.post(
       "/",
       this.jwttMiddleware.verifyToken(process.env.JWT_SECRET!),
@@ -25,11 +24,13 @@ export class ReviewRouter {
       this.reviewController.createReview
     );
 
-    // OPTIONAL: list reviews per event (public)
     this.router.get("/event/:eventId", this.reviewController.getReviewsByEventId);
+
+    this.router.get(
+      "/organizer/:organizerId",
+      this.reviewController.getReviewsByOrganizerId
+    );
   };
 
-  getRouter = () => {
-    return this.router;
-  };
+  getRouter = () => this.router;
 }

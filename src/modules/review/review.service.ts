@@ -131,4 +131,40 @@ export class ReviewService {
 
     return reviews;
   };
+
+  getReviewsByOrganizerId = async (organizerId: number, take: number = 6) => {
+    const safeTake = Math.max(1, Math.min(6, take)); // cap max 6
+
+    const reviews = await this.prisma.reviews.findMany({
+      where: {
+        events: {
+          organizer_id: organizerId,
+        },
+      },
+      orderBy: { created_at: "desc" },
+      take: safeTake,
+      select: {
+        review_id: true,
+        rating: true,
+        comment: true,
+        created_at: true,
+        user: {
+          select: {
+            id: true,
+            full_name: true,
+            profile_image: true,
+            created_at: true, // biar bisa tampil "Joined on ..."
+          },
+        },
+        events: {
+          select: {
+            event_id: true,
+            title: true,
+          },
+        },
+      },
+    });
+
+    return reviews;
+  };
 }
