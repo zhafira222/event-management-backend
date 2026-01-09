@@ -156,4 +156,28 @@ export class PromotionService {
       discount_amount: this.decimalToNumber(p.discount_amount),
     }));
   };
+
+  getPromotionsByOrganizerId = async (organizerId: number) => {
+  const promotions = await this.prisma.coupons.findMany({
+    where: { organizer_id: organizerId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      coupon_id: true,
+      code: true,
+      expires_at: true,
+      image: true,
+      organizer_id: true,
+      event_id: true,
+      events: {
+        select: {
+          title: true,
+          start_date: true,
+          end_date: true,
+        },
+      },
+    },
+  });
+
+  return promotions;
+};
 }

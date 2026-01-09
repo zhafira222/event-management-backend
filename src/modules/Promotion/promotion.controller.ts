@@ -55,4 +55,18 @@ export class PromotionController {
       data: result,
     });
   };
+
+  getPromotionsByOrganizerId = async (req: Request, res: Response) => {
+  const organizerId = Number(req.params.organizerId);
+  if (!organizerId || Number.isNaN(organizerId)) {
+    throw new ApiError("organizerId is invalid", 400);
+  }
+
+  const result = await this.promotionService.getPromotionsByOrganizerId(organizerId);
+
+  return res.status(200).send({
+    message: "Get promotions by organizer success",
+    data: result,
+  });
+};
 }

@@ -23,6 +23,11 @@ export class PromotionRouter {
 
     this.router.get("/validate", this.promotionController.validatePromotion);
 
+    this.router.get(
+    "/organizer/:organizerId",
+    this.promotionController.getPromotionsByOrganizerId
+  );
+
     this.router.post(
       "/",
       this.jwttMiddleware.verifyToken(process.env.JWT_SECRET!),
