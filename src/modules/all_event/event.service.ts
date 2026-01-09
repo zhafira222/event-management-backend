@@ -110,71 +110,90 @@ export class EventService {
   };
 
   // event.service.ts
-getEvents = async (query: GetEventDTO) => {
-  const { page, take, sortBy, sortOrder, search, category_id } = query;
+  getEvents = async (query: GetEventDTO) => {
+    const { page, take, sortBy, sortOrder, search, category_id } = query;
 
-  const whereClause: Prisma.eventWhereInput = {};
+    const whereClause: Prisma.eventWhereInput = {};
 
-  if (search) {
-    whereClause.title = { contains: search, mode: "insensitive" };
-  }
+    if (search) {
+      whereClause.title = { contains: search, mode: "insensitive" };
+    }
 
-  if (category_id) {
-    whereClause.category_id = category_id;
-  }
+    if (category_id) {
+      whereClause.category_id = category_id;
+    }
 
-  const events = await this.prisma.event.findMany({
-    where: whereClause,
-    take,
-    skip: (page - 1) * take,
-    orderBy: { [sortBy]: sortOrder },
-    select: {
-      event_id: true,
-      title: true,
-      slug: true, // ✅ dipaksa ikut
-      description: true,
-      start_date: true,
-      end_date: true,
-      location: true,
-      image: true,
-      category_id: true,
-      created_at: true,
-      updated_at: true,
+    if (query.organizer_id) {
+      whereClause.organizer_id = query.organizer_id;
+    }
 
-      organizers: {
-        select: { organization_name: true },
+    const events = await this.prisma.event.findMany({
+      where: whereClause,
+      take,
+      skip: (page - 1) * take,
+      orderBy: { [sortBy]: sortOrder },
+      select: {
+        event_id: true,
+        title: true,
+        slug: true, 
+        description: true,
+        start_date: true,
+        end_date: true,
+        location: true,
+        image: true,
+        category_id: true,
+        created_at: true,
+        updated_at: true,
+
+        organizers: {
+          select: {
+            organizer_id: true,
+            organization_name: true,
+            average_rating: true,
+            total_reviews: true,
+            user: { select: { profile_image: true } },
+          },
+        },
+        categories: {
+          select: { category_name: true },
+        },
       },
-      categories: {
-        select: { category_name: true },
-      },
-    },
-  });
+    });
 
-  const total = await this.prisma.event.count({ where: whereClause });
+    const total = await this.prisma.event.count({ where: whereClause });
 
-  return { data: events, meta: { page, take, total } };
-};
+    return { data: events, meta: { page, take, total } };
+  };
 
   getEventBySlug = async (slug: string) => {
-  const event = await this.prisma.event.findFirst({
-    where: { slug },
-    include: {
-      organizers: { select: { organization_name: true } },
-      categories: { select: { category_name: true } }, // ✅ tambah ini
-      tickets: {
-        select: {
-          ticket_id: true,
-          name: true,
-          price: true,
-          stock: true,
-          description: true,
-        },
-        orderBy: { created_at: "asc" },
-      },
-    },
-  });
+    const event = await this.prisma.event.findFirst({
+      where: { slug },
+      include: {
+        organizers: {
+          select: {
+            organization_name: true,
+            average_rating: true,
+            total_reviews: true,
+            user: { select: { profile_image: true } },
 
-  if (!event) throw new ApiError("Event not found", 404);
-  return event;
-};
+            _count: { select: { events: true } },
+          },
+        },
+        categories: { select: { category_name: true } },
+        tickets: {
+          select: {
+            ticket_id: true,
+            name: true,
+            price: true,
+            stock: true,
+            description: true,
+          },
+          orderBy: { created_at: "asc" },
+        },
+      },
+    });
+
+    if (!event) throw new ApiError("Event not found", 404);
+    return event;
+  };
 }

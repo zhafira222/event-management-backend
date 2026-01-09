@@ -11,7 +11,6 @@ export class ReviewService {
   }
 
   createReview = async (body: CreateReviewDTO, authUserId: number) => {
-    // 1) pastikan transaksi ada + ambil event organizer untuk update rating
     const trx = await this.prisma.transactions.findUnique({
       where: { transaction_id: body.transaction_id },
       select: {
@@ -22,8 +21,8 @@ export class ReviewService {
         events: {
           select: {
             event_id: true,
-            organizer_id: true,
             end_date: true,
+            organizer_id: true,
           },
         },
       },
@@ -31,30 +30,23 @@ export class ReviewService {
 
     if (!trx) throw new ApiError("Transaction not found.", 404);
 
-    // 2) transaksi harus milik user login
     if (trx.user_id !== authUserId) {
       throw new ApiError("You don't have access to this transaction.", 403);
     }
 
-    // 3) pastikan event_id sesuai transaksi
-    // if (trx.event_id !== body.event_id) {
-    //   throw new ApiError("Event ID does not match this transaction.", 400);
-    // }
+    if (trx.event_id !== body.event_id) {
+      throw new ApiError("Event ID does not match this transaction.", 400);
+    }
 
     const now = new Date();
-    if (trx.events.end_date > now) {
+    if (trx.events?.end_date && trx.events.end_date > now) {
       throw new ApiError("You can review only after the event has ended.", 400);
     }
 
-    // 4) pastikan status transaksi tidak pending
-    if (!["PAID", "WAITING_FOR_REVIEW", "REVIEW_DONE"].includes(trx.status)) {
-      throw new ApiError(
-        "You can review only after payment is completed.",
-        400
-      );
+    if (trx.status !== "WAITING_FOR_REVIEW") {
+      throw new ApiError("This transaction is not eligible for review.", 400);
     }
 
-    // 5) pastikan 1 transaksi hanya 1 review
     const existing = await this.prisma.reviews.findFirst({
       where: { transaction_id: body.transaction_id },
       select: { review_id: true },
@@ -64,8 +56,12 @@ export class ReviewService {
       throw new ApiError("Review for this transaction already exists.", 400);
     }
 
-    // 6) create review + update organizer rating secara atomic
+    if (!trx.events?.organizer_id) {
+      throw new ApiError("Organizer not found for this event.", 404);
+    }
+
     const result = await this.prisma.$transaction(async (tx) => {
+      // 1) create review
       const review = await tx.reviews.create({
         data: {
           rating: body.rating,
@@ -79,7 +75,13 @@ export class ReviewService {
         },
       });
 
-      // ambil organizer current stats
+      // 2) update trx status
+      await tx.transactions.update({
+        where: { transaction_id: body.transaction_id },
+        data: { status: "REVIEW_DONE" },
+      });
+
+      // 3) update organizer avg + total
       const org = await tx.organizers.findUnique({
         where: { organizer_id: trx.events.organizer_id },
         select: {
@@ -89,9 +91,7 @@ export class ReviewService {
         },
       });
 
-      if (!org) {
-        throw new ApiError("Organizer not found.", 404);
-      }
+      if (!org) throw new ApiError("Organizer not found.", 404);
 
       const prevTotal = org.total_reviews ?? 0;
       const prevAvg = new Prisma.Decimal(org.average_rating ?? 0);

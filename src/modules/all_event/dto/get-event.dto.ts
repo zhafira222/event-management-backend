@@ -25,13 +25,15 @@ export class GetEventDTO {
   category_id?: number;
 
   @IsOptional()
+  @Transform(({ value }) => (value === undefined ? undefined : Number(value)))
+  @IsInt()
+  @Min(1)
+  organizer_id?: number;
+
+  @IsOptional()
   @IsIn(["created_at", "title", "start_date", "end_date", "category_id"])
-  sortBy:
-    | "created_at"
-    | "title"
-    | "start_date"
-    | "end_date"
-    | "category_id" = "created_at";
+  sortBy: "created_at" | "title" | "start_date" | "end_date" | "category_id" =
+    "created_at";
 
   @IsOptional()
   @IsIn(["asc", "desc"])
