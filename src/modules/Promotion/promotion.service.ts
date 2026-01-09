@@ -147,7 +147,7 @@ export class PromotionService {
         image: true,
         createdAt: true,
         updatedAt: true,
-        events: { select: { title: true } },
+        events: { select: { title: true, start_date: true, end_date: true } },
       },
     });
 
