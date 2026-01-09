@@ -185,7 +185,7 @@ model points {
 }
 
 model reviews {
-  review_id      BigInt   @id @default(autoincrement())
+  review_id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   rating         Int
   comment        String
   user_id        Int
